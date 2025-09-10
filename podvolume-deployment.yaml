@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pod-volume-deployment
+spec:
+  selector:
+    matchLabels:
+      app: pod-volume
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: pod-volume
+    spec:
+      containers:
+      - name: busybox
+        image: busybox:1.28
+        command: ['sh', '-c', 'mkdir -p /podvolume && while true; do echo "$(date) - Test message" >> /podvolume/success.txt; sleep 5; done']
+        volumeMounts:
+        - name: podvolume
+          mountPath: /podvolume
+      - name: multitool
+        image: wbitt/network-multitool
+        command: ['sh', '-c', 'tail -f /podvolume/success.txt']
+        volumeMounts:
+        - name: podvolume
+          mountPath: /podvolume
+      volumes:
+      - name: podvolume
+        emptyDir: {}
